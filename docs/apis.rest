@@ -1,0 +1,89 @@
+@host={{$dotenv TEST_HOST}}
+
+@access_token={{$dotenv VITE_ACCESS_TOKEN}}
+
+@app_name={{$dotenv VITE_APP_NAME}}
+
+### get all apps
+GET https://{{host}}/list-apps
+
+### Create a new session for a user in the income tax agent
+POST https://{{host}}/apps/{{app_name}}/users/user_123/sessions/s_123
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+    "state":{
+        "key1":"value1",
+        "key2": 64
+    }
+}
+
+### Get user's sessions list
+GET https://{{host}}/apps/{{app_name}}/users/user_123/sessions
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+    "app_name":"{{app_name}}",
+    "user_id":"user_123"
+}
+
+### Delete a session for a user in the income tax agent
+DELETE https://{{host}}/apps/{{app_name}}/users/user_123/sessions/s_123
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+    "app_name":"{{app_name}}",
+    "user_id":"user_123",
+    "session_id":"s_123"
+}
+
+### Send a query to the session
+POST https://{{host}}/run
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+    "app_name":"{{app_name}}",
+    "user_id":"user_123",
+    "session_id":"s_123",
+    "new_message":{
+        "role":"user",
+        "parts":[{
+            "text": "How do I file my taxes?"
+        }]
+    }
+}
+
+### Send a Server-Sent-Event (SSE) to the session
+POST https://{{host}}/run_sse
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+    "app_name":"{{app_name}}",
+    "user_id":"user_123",
+    "session_id":"s_123",
+    "new_message":{
+        "role":"user",
+        "parts":[{
+            "text": "How do I file my taxes?"
+        }]
+    },
+    "streaming": true
+}
+
+
+
+### Get user's sessions list
+GET https://{{host}}/apps/{{app_name}}/users/user_123/sessions
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+    "app_name":"{{app_name}}",
+    "user_id":"user_123"
+}
+
