@@ -283,8 +283,13 @@
       }
 
       const data = await response.json() as FetchChatResponse[];
+      console.log('API response:', data); // Debugging line
       if (data.length > 0 && data[0].content?.parts?.length > 0) {
-        addMessage(agentName, data[0].content.parts[0].text);
+        data.forEach(item => {
+          if (item.content?.role === 'model' && item.content.parts?.[0]?.text) {
+            addMessage(agentName, item.content.parts[0].text);
+          }
+        });
       }
     } catch (error: any) {
       console.error('Error sending query:', error);
@@ -299,6 +304,7 @@
 
   const parseMarkdown = (text: string): string => {
     try {
+      console.log('Parsing markdown:', text); // Debugging line
       marked.setOptions({ breaks: true, gfm: true });
       // Ensure it returns a string, handle potential non-string returns if necessary
       const parsed = marked.parse(text, { async: false });
