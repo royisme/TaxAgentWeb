@@ -172,7 +172,7 @@ export const useAuthStore = defineStore('auth', () => {
   };
 });
 
-function mapRawUserToUser(rawUserData: any): User | null {
+function mapRawUserToUser (rawUserData: any): User | null {
   if (!rawUserData || !rawUserData.id) {
     // Basic validation: return null if essential data is missing
     return null;
