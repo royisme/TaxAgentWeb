@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-card class="mx-auto" elevation="2" max-width="800">
+    <v-card class="mx-auto" elevation="2" max-width="900" style="height: 100%;">
       <v-card-title class="d-flex align-center rounded-top">
         <v-icon class="mr-2" color="primary">mdi-chat</v-icon>
         Agent Chat (Hybrid: Fetch Text + WS Audio)
@@ -512,7 +512,7 @@
 <style scoped lang="scss">
   /* Use theme variables for background and text color */
   .chat-messages {
-    height: 400px; /* Or use calc(100vh - Xpx) for better responsiveness */
+    height: 80vh; /* Or use calc(100vh - Xpx) for better responsiveness */
     overflow-y: auto;
     padding: 16px;
     background-color: rgb(var(--v-theme-surface)); /* Use surface color */

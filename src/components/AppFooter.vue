@@ -1,5 +1,5 @@
 <template>
-  <v-footer class="text-center d-flex flex-column" :class="themeStore.isDark ? 'bg-surface' : 'bg-primary'">
+  <v-footer class="text-center d-flex flex-column fixed-height-footer" :class="themeStore.isDark ? 'bg-surface' : 'bg-primary'">
     <div class="py-4 text-white">
       <p>© {{ new Date().getFullYear() }} AI Agent Hub - A JACHacks 2025 Project. All rights reserved.</p>
     </div>
@@ -12,4 +12,8 @@
 </script>
 
 <style scoped lang="sass">
+.fixed-height-footer
+  height: 54px !important
+  min-height: 54px
+  max-height: 54px
 </style>
