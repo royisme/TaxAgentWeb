@@ -710,4 +710,7 @@
   .font-italic {
       font-style: italic;
   }
+  .v-card-text {
+   max-height: 600px; 
+  }
 </style>
