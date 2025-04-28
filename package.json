@@ -12,6 +12,7 @@
     "lint": "eslint . --fix"
   },
   "dependencies": {
+    "@auth0/auth0-vue": "^2.4.0",
     "@mdi/font": "7.4.47",
     "axios": "^1.6.2",
     "date-fns": "^2.30.0",

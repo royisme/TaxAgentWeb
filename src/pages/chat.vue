@@ -1,7 +1,7 @@
 <template>
-  <div class="chat-page">
+  <v-container fluid>
     <Chat />
-  </div>
+  </v-container>
 </template>
 
   <script setup lang="ts">
@@ -9,8 +9,7 @@
   </script>
 
   <style scoped>
-  .chat-page {
-    height: 100%;
-    width: 100%;
-  }
+.chat-page {
+  width: 100%;
+}
   </style>

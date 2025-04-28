@@ -1,118 +1,116 @@
 <template>
-  <v-container>
-    <v-card class="mx-auto" elevation="2" max-width="800">
-      <v-card-title class="d-flex align-center rounded-top">
-        <v-icon class="mr-2" color="primary">mdi-chat</v-icon>
-        Agent Chat (Hybrid: Fetch Text + WS Audio)
-      </v-card-title>
+  <v-card class="mx-auto" elevation="2" max-width="800">
+    <v-card-title class="d-flex align-center rounded-top">
+      <v-icon class="mr-2" color="primary">mdi-chat</v-icon>
+      Agent Chat (Hybrid: Fetch Text + WS Audio)
+    </v-card-title>
 
-      <v-card-text>
-        <v-alert
-          v-if="fetchError"
-          class="mb-3"
-          closable
-          density="compact"
-          type="error"
-          variant="tonal"
-        >
-          Error: {{ fetchError }}
-        </v-alert>
-        <v-alert
-          v-if="wsError"
-          class="mb-3"
-          closable
-          density="compact"
-          type="error"
-          variant="tonal"
-        >
-          Audio Connection Error: {{ wsError }}
-        </v-alert>
-        <v-alert
-          v-if="recorderError"
-          class="mb-3"
-          closable
-          density="compact"
-          type="warning"
-          variant="tonal"
-        >
-          Recorder Error: {{ recorderError }}
-        </v-alert>
-        <v-alert
-          v-if="playerError"
-          class="mb-3"
-          closable
-          density="compact"
-          type="warning"
-          variant="tonal"
-        >
-          Player Error: {{ playerError }}
-        </v-alert>
+    <v-card-text max-height="600">
+      <v-alert
+        v-if="fetchError"
+        class="mb-3"
+        closable
+        density="compact"
+        type="error"
+        variant="tonal"
+      >
+        Error: {{ fetchError }}
+      </v-alert>
+      <v-alert
+        v-if="wsError"
+        class="mb-3"
+        closable
+        density="compact"
+        type="error"
+        variant="tonal"
+      >
+        Audio Connection Error: {{ wsError }}
+      </v-alert>
+      <v-alert
+        v-if="recorderError"
+        class="mb-3"
+        closable
+        density="compact"
+        type="warning"
+        variant="tonal"
+      >
+        Recorder Error: {{ recorderError }}
+      </v-alert>
+      <v-alert
+        v-if="playerError"
+        class="mb-3"
+        closable
+        density="compact"
+        type="warning"
+        variant="tonal"
+      >
+        Player Error: {{ playerError }}
+      </v-alert>
 
-        <div ref="messagesDiv" class="chat-messages">
-          <div
-            v-for="msg in messages"
-            :key="msg.id"
-            :class="['message', getMessageClass(msg.sender)]"
-          >
-            <div class="message-container">
-              <div v-if="msg.sender !== 'System'" :class="['message-avatar', 'mr-3', getAvatarClass(msg.sender)]">
-                <span>{{ msg.sender.charAt(0).toUpperCase() }}</span>
+      <div ref="messagesDiv" class="chat-messages">
+        <div
+          v-for="msg in messages"
+          :key="msg.id"
+          :class="['message', getMessageClass(msg.sender)]"
+        >
+          <div class="message-container">
+            <div v-if="msg.sender !== 'System'" :class="['message-avatar', 'mr-3', getAvatarClass(msg.sender)]">
+              <span>{{ msg.sender.charAt(0).toUpperCase() }}</span>
+            </div>
+            <div class="message-content">
+              <div v-if="msg.sender !== 'System' && msg.sender !== 'You'" class="message-sender text-subtitle-2 font-weight-medium">
+                {{ msg.sender }}
               </div>
-              <div class="message-content">
-                <div v-if="msg.sender !== 'System' && msg.sender !== 'You'" class="message-sender text-subtitle-2 font-weight-medium">
-                  {{ msg.sender }}
-                </div>
-                <div
-                  v-if="msg.sender === agentName && !msg.isAudioPlaceholder"
-                  class="message-text"
-                  :class="{ 'font-italic': msg.isAudioPlaceholder }"
-                  v-html="parseMarkdown(msg.text)"
-                />
-                <div
-                  v-else
-                  class="message-text"
-                  :class="{ 'font-italic': msg.isAudioPlaceholder }"
-                >
-                  {{ msg.text }}
-                </div>
+              <div
+                v-if="msg.sender === agentName && !msg.isAudioPlaceholder"
+                class="message-text"
+                :class="{ 'font-italic': msg.isAudioPlaceholder }"
+                v-html="parseMarkdown(msg.text)"
+              />
+              <div
+                v-else
+                class="message-text"
+                :class="{ 'font-italic': msg.isAudioPlaceholder }"
+              >
+                {{ msg.text }}
               </div>
             </div>
           </div>
         </div>
-      </v-card-text>
+      </div>
+    </v-card-text>
 
-      <v-card-actions class="pa-4">
-        <v-form class="d-flex w-100 align-items-baseline" @submit.prevent="handleSubmit">
-          <v-text-field
-            ref="messageInput"
-            v-model="currentMessage"
-            append-inner-icon="mdi-send"
-            class="mr-2"
-            density="comfortable"
-            :disabled="isSending || isConnectingWs"
-            hide-details
-            label="Message"
-            variant="outlined"
-            @click:append-inner="handleSubmit"
-            @keydown.enter="handleSubmit"
-          />
+    <v-card-actions class="pa-4">
+      <v-form class="d-flex w-100 align-items-baseline" @submit.prevent="handleSubmit">
+        <v-text-field
+          ref="messageInput"
+          v-model="currentMessage"
+          append-inner-icon="mdi-send"
+          class="mr-2"
+          density="comfortable"
+          :disabled="isSending || isConnectingWs"
+          hide-details
+          label="Message"
+          variant="outlined"
+          @click:append-inner="handleSubmit"
+          @keydown.enter="handleSubmit"
+        />
 
-          <v-btn
-            class="mr-2"
-            :color="isRecording ? 'error' : 'secondary'"
-            :disabled="isSending"
-            icon
-            :loading="isConnectingWs"
-            :title="isRecording ? 'Stop Recording' : 'Start Recording'"
-            @click="toggleRecording"
-          >
-            <v-icon>{{ isRecording ? 'mdi-microphone-off' : 'mdi-microphone' }}</v-icon>
-          </v-btn>
+        <v-btn
+          class="mr-2"
+          :color="isRecording ? 'error' : 'secondary'"
+          :disabled="isSending"
+          icon
+          :loading="isConnectingWs"
+          :title="isRecording ? 'Stop Recording' : 'Start Recording'"
+          @click="toggleRecording"
+        >
+          <v-icon>{{ isRecording ? 'mdi-microphone-off' : 'mdi-microphone' }}</v-icon>
+        </v-btn>
 
-        </v-form>
-      </v-card-actions>
-    </v-card>
-  </v-container>
+      </v-form>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script lang="ts" setup>
@@ -127,7 +125,7 @@
   // --- Auth Store ---
   const authStore = useAuthStore();
   const currentUserId = computed(() => authStore.user?.id);
-  const currentToken = computed(() => authStore.appToken);
+  console.log('Current User ID:', currentUserId.value); // 打印 Ref 内部的实际值 (字符串或 undefined)
   // --- Reactive State ---
   const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -138,6 +136,7 @@
   const welcomeMessage = import.meta.env.VITE_WELCOME_MESSAGE || 'Welcome to the Income Tax Agent! How can I help you today?';
   const sessionId = ref(import.meta.env.VITE_SESSION_ID || `s_${Date.now()}`);
 
+  const hasCreatedSession = ref(false); // Track if session has been created
   const messagesDiv = ref<HTMLDivElement | null>(null); // Ref for the message container div
   const messageInput = ref<HTMLInputElement | null>(null); // Ref for the text input
   const currentMessage = ref(''); // v-model for the text input
@@ -165,16 +164,8 @@
     hostname = 'localhost';
     port = '8000';
   }
-  const wsBaseUrl = `${wsProtocol}//${hostname}${port ? ':' + port : ''}`;
-  const wsUrl = computed(() => {
-    if (!currentUserId.value || !currentToken.value) {
-      return null;
-    }
-    //TODO: pass token is needed
-    return `${wsBaseUrl}/run_live?app_name=${appName}&user_id=${currentUserId.value}&session_id=${sessionId.value}&token=${currentToken.value}`;
-  });
-  console.log('WebSocket URL:', wsUrl.value); // Debugging line
-  // --- Composables ---
+  const wsBaseEndpointUrl = `${wsProtocol}//${hostname}${port ? ':' + port : ''}/run_live`;
+
   const {
     isConnected,
     error: wsErrorComposable,
@@ -182,7 +173,7 @@
     connect: connectWebSocket,
     sendAudioChunk,
     disconnect,
-  } = useWebSocket(wsUrl.value || '');
+  } = useWebSocket();
 
   const {
     isRecording,
@@ -203,8 +194,9 @@
   watch(playerErrorComposable, newVal => { playerError.value = newVal; });
 
   // --- API Calls & Logic ---
-  const getAuthHeaders = () => {
-    const token = currentToken.value; // Get current token from store
+  const getAuthHeaders =async () => {
+    const token = await authStore.getToken();
+    console.log('Token:', token); // Debugging line
     if (!token) {
       console.error('Cannot make API call: No authentication token found.');
       throw new Error('Authentication required.');
@@ -215,14 +207,15 @@
     };
   };
   const createSession = async () => {
+    if (hasCreatedSession.value) return; // Skip if session already created
     fetchError.value = null;
-    if (!currentUserId.value) {
+    if (!authStore.isAuthenticated || !currentUserId.value) { // Check isAuthenticated from store
       fetchError.value = 'User not loaded. Cannot create session.';
       console.error(fetchError.value);
       return;
     }
     try {
-      const reqHeaders = getAuthHeaders();
+      const reqHeaders = await getAuthHeaders();
       const response = await fetch(
         `${apiBaseUrl}/apps/${appName}/users/${currentUserId.value}/sessions/${sessionId.value}`,
         {
@@ -243,6 +236,7 @@
       }
       const data = await response.json();
       console.log('Session ensured:', data);
+      hasCreatedSession.value = true; // Mark session as created
       addMessage('System', welcomeMessage);
       return data;
     } catch (error: any) {
@@ -263,8 +257,8 @@
     fetchError.value = null;
     try {
       await createSession(); // Ensure session if needed per message
+      const reqHeaders = await getAuthHeaders(); // Await headers
 
-      const reqHeaders = getAuthHeaders(); // Get current auth headers
       const response = await fetch(`${apiBaseUrl}/run`, {
         method: 'POST',
         headers: reqHeaders, // Use dynamic headers
@@ -370,13 +364,27 @@
   // --- Audio/WebSocket Specific Methods ---
 
   const connectAndStartAudio = async () => {
-    if (wsUrl.value && !isConnected.value) { // Check if URL is valid and not already connected
+    if (!authStore.isAuthenticated || !currentUserId.value) {
+      console.warn('User not authenticated or ID missing. Cannot connect audio.');
+      addMessage('System', 'Please log in to use audio.');
+      // Optionally redirect to login
+      // router.push('/auth/login');
+      return;
+    }
+    const token = await authStore.getToken(); // Await the token
+    if (!token) {
+      console.error('Failed to get token for WebSocket connection.');
+      addMessage('System', 'Failed to get authentication token for audio.');
+      // Optionally trigger a re-auth flow
+      return;
+    }
+    const fullWsUrl = `${wsBaseEndpointUrl}?app_name=${appName}&user_id=${currentUserId.value}&session_id=${sessionId.value}&token=${token}`;
+    if (!isConnected.value) { // Check if URL is valid and not already connected
       console.log('Attempting to connect audio WebSocket...');
       addMessage('System', 'Connecting for audio...');
-      isConnectingWs.value = true;
       wsError.value = null;
       try {
-        connectWebSocket(); // Call the connect method from the composable
+        connectWebSocket(fullWsUrl); // Call the connect method from the composable
         // Wait for connection or error (using watcher below is better)
         await new Promise<void>((resolve, reject) => {
           const stopWatcher = watch([isConnected, wsErrorComposable], ([conn, err]) => {
@@ -399,28 +407,27 @@
           }, 5000);
         });
 
-        isConnectingWs.value = false;
         console.log('Audio WebSocket connected. Starting recording...');
         addMessage('', 'Audio connection established. Recording...');
         await startRecording();
 
       } catch (err: any) {
         console.error('Failed to connect WebSocket or start recording:', err);
-        isConnectingWs.value = false;
         wsError.value = err.message || 'Connection/Recording failed.';
         addMessage('System', `Failed to start audio: ${wsError.value}`);
         disconnect(); // Ensure cleanup
       }
-    } else if (!wsUrl.value) {
-      addMessage('System', 'Cannot connect audio: Authentication info missing.');
-      console.warn('wsUrl is null, cannot connect.');
-    } else {
+    }else {
       console.log('WebSocket already connected or connection attempt in progress.');
+      // If already connected, just start recording if not already
+      if (!isRecording.value) {
+        await startRecording();
+      }
     }
   }
 
   const toggleRecording = async (): Promise<void> => {
-    if (isSending.value) {
+    if (isSending.value|| authStore.isLoading) {
       addMessage('System', 'Please wait for the current message to send.');
       return;
     }
@@ -440,7 +447,7 @@
 
   // Updated: Pass token if needed by backend inside the audio chunk message
   function handleAudioChunkCallback (audioData: Uint8Array) {
-    if (isConnected.value && currentToken.value) {
+    if (isConnected.value ) {
       sendAudioChunk(audioData);
 
     } else {
@@ -455,22 +462,19 @@
   // --- Lifecycle & Watchers ---
   onMounted(async () => {
     console.log('Chat component mounted. Checking auth state...');
-    // Wait for authentication to be ready before creating session or connecting WS
-    if (authStore.isAuthenticated) {
-      console.log('User is authenticated on mount.');
-      await createSession();
-    } else {
-      console.log('User is not authenticated on mount.');
-      // Watch for authentication changes if not authenticated initially
-      const stopAuthWatcher = watch(() => authStore.isAuthenticated, async isAuth => {
+    const stopAuthWatcher = watch([() => authStore.isAuthenticated, () => authStore.isLoading], ([isAuth, isLoading]) => {
+      if (!isLoading) {
         if (isAuth) {
-          console.log('User became authenticated after mount.');
-          await createSession();
-          // Optionally connect WS here
-          stopAuthWatcher(); // Stop watching once authenticated
+          console.log('User is authenticated and auth state is loaded.');
+          createSession(); // Create/ensure session for text chat
+        } else {
+          console.log('User is not authenticated and auth state is loaded.');
+          addMessage('System', 'Please log in to start chatting.');
         }
-      });
-    }
+        stopAuthWatcher(); // Stop watching once auth state is determined
+      }
+    }, { immediate: true }); // Check immediately on mount
+
 
     if (messageInput.value) {
       messageInput.value.focus();
@@ -497,7 +501,6 @@
       addMessage('System', `Audio connection error: ${newError}. Stopping recording.`);
       if (isRecording.value) stopRecording();
       disconnect();
-      isConnectingWs.value = false; // Ensure loading state is reset
     }
   });
 
@@ -704,4 +707,8 @@
   .font-italic {
       font-style: italic;
   }
+  .v-card-text {
+   max-height: 600px;
+  }
+
 </style>

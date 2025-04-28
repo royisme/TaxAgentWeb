@@ -13,7 +13,7 @@
             </v-chip>
           </div>
           <h1 class="text-h2 font-weight-bold mb-4">
-            Your Universal AI Agent Hub
+            Your Tax Agent powered by AI
           </h1>
           <p class="text-h6 mb-6" :class="themeStore.isDark ? 'text-grey-lighten-1' : 'text-grey-darken-1'">
             Connect and interact with multiple AI agents through a single, unified interface. Built during JACHacks 2025, where 200 students came together to innovate and create impactful solutions.

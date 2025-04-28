@@ -11,10 +11,11 @@ import router from '../router'
 
 // Types
 import type { App } from 'vue'
-
+import auth0 from './auth0'
 export function registerPlugins (app: App) {
   app
     .use(vuetify)
     .use(router)
+    .use(auth0)
     .use(pinia)
 }

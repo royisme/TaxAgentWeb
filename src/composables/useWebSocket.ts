@@ -2,7 +2,7 @@ import { ref, type Ref } from 'vue';
 import type { ChatMessage, ReceivedAudio,WebSocketPacket } from '@/types/chat'; // Adjust path if needed
 import { arrayBufferToBase64, parseSampleRate } from '@/utils/helpers'; // Import helper
 
-export function useWebSocket (url: string) {
+export function useWebSocket () {
   const ws: Ref<WebSocket | null> = ref(null);
   const isConnected: Ref<boolean> = ref(false);
   const messages: Ref<ChatMessage[]> = ref([]);
@@ -12,7 +12,11 @@ export function useWebSocket (url: string) {
   const reconnectTimeout: Ref<ReturnType<typeof setTimeout> | null> = ref(null);
   const receivedAudio: Ref<ReceivedAudio | null> = ref(null);
 
-  const connect = (): void => {
+  const connect = (url: string): void => {
+    if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+      console.log('WebSocket already connected.');
+      return; // Prevent connecting if already open
+    }
     if (reconnectTimeout.value) clearTimeout(reconnectTimeout.value);
     console.log(`Connecting to ${url}...`);
 
@@ -35,7 +39,6 @@ export function useWebSocket (url: string) {
       receivedAudio.value = null;
       try {
         const packet: WebSocketPacket = JSON.parse(event.data);
-        console.log('Received packet:', packet);
 
         // --- Handle status updates ---
         if (packet.turn_complete) {

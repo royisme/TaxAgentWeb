@@ -1,11 +1,12 @@
 <script setup lang="ts">
   import { useAuthStore } from '@/stores/auth'
   import { useThemeStore } from '@/stores/theme'
+  import { useAuth0 } from '@auth0/auth0-vue'
   const themeStore = useThemeStore()
   const authStore = useAuthStore()
-
-  authStore.initializeAuth()
+  const us = useAuth0()
   themeStore.initializeTheme()
+  console.log('App.vue',us)
 
 </script>
 

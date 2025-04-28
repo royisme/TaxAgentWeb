@@ -12,6 +12,7 @@ declare module 'vue' {
     AppFooter: typeof import('./components/AppFooter.vue')['default']
     Chat: typeof import('./components/Chat.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
+    LoginButton: typeof import('./components/LoginButton.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ThemeToggle: typeof import('./components/ThemeToggle.vue')['default']

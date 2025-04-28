@@ -8,53 +8,39 @@
 import { createRouter, createWebHistory } from 'vue-router/auto'
 import { setupLayouts } from 'virtual:generated-layouts'
 import { routes } from 'vue-router/auto-routes'
-import { useAuthStore } from '@/stores/auth'
+import { useAuth0 } from '@auth0/auth0-vue'
+const authRequiredRoutes = ['/chat', '/user'];
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: setupLayouts(routes),
-})
+});
 
-// 添加全局前置守卫
-router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
-  if (!authStore.appToken) {
-    authStore.initializeAuth()
-  }
-  // 定义需要认证的路由路径列表
-  const authRequiredRoutes = ['/chat', '/user'] // 添加所有需要认证的路径
-
-  // 检查当前路由是否需要认证
+router.beforeEach(async (to, from, next) => {
+  const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0(); // Get state and login method
   const requiresAuth = authRequiredRoutes.some(route => to.path.startsWith(route));
-  // --- 添加详细日志 ---
   console.log(
-    `Router Guard: Navigating to '${to.path}'. Requires Auth: ${requiresAuth}. Store isAuthenticated: ${authStore.isAuthenticated}. Token exists: ${!!authStore.appToken}`
+    `Router Guard: Navigating to '${to.path}'. Requires Auth: ${requiresAuth}. Auth0 isAuthenticated: ${isAuthenticated.value}. Auth0 isLoading: ${isLoading.value}`
   );
-  // --- 结束添加日志 ---
-
-  console.log('路由:', to.path, '需要认证:', requiresAuth)
-
-  if (requiresAuth && !authStore.isAuthenticated) {
-
-    /*
-    //If the token is expired, try refreshing it silently before redirecting
-    if (authStore.isInternalTokenExpired && authStore.internalRefreshToken) {
-        authStore.refreshInternalToken().then(success => {
-            if (success) {
-                next(); // Allow navigation if refresh succeeded
-            } else {
-                next('/auth/login'); // Redirect if refresh failed
-            }
-        });
-    } else {
-        next('/auth/login'); // Redirect if not authenticated or no refresh token
-    }
-    */
-    next('/auth/login')
-  } else {
-    next()
+  if (requiresAuth && isLoading.value) {
+    console.log('Auth0: Route requires auth, but SDK is loading. Allowing navigation, component will handle final state.');
+    next();
   }
-})
+  else if (requiresAuth && !isLoading.value && !isAuthenticated.value) {
+    console.log('Auth0: Route requires auth, user not authenticated, not loading. Redirecting to login.');
+    // Trigger Auth0 login redirect
+    await loginWithRedirect({
+      appState: { targetUrl: to.fullPath }, // Store the intended path
+    });
+    // loginWithRedirect performs a full page redirect, so no need to call next()
+  }
+  else {
+    console.log('Auth0: Authentication state allows navigation. Proceeding.');
+    next();
+  }
+});
+
 
 // Workaround for https://github.com/vitejs/vite/issues/11804
 router.onError((err, to) => {

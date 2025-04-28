@@ -7,15 +7,12 @@
   const router = useRouter()
   const themeStore = useThemeStore()
   const authStore = useAuthStore() // Instantiate Auth Store
-  watchEffect(() => {
-    if (authStore.user) {
-      console.log('Firebase User Object:', authStore.user);
-    // 可以更具体地检查 providerData
-    }
-  });
+  const isAuthenticated = computed(() => authStore.isAuthenticated);
+  const user = computed(() => authStore.user); // Mapped user from Auth0 ID Token
 
   const handleLogout = async () => {
-    await authStore.logout();
+    // Call the logout action from the store
+    await authStore.logoutUser();
     router.push('/');
   }
 
@@ -30,17 +27,17 @@
       <v-btn class="mr-2" icon @click="router.push('/')">
         <v-icon class="mr-2" icon="mdi-shield" />
 
-        <v-app-bar-title>AI Agent Hub</v-app-bar-title>
+        <v-app-bar-title>TaxAgent Hub</v-app-bar-title>
       </v-btn>
       <v-spacer />
 
       <ThemeToggle class="mr-4" />
 
-      <template v-if="authStore.isAuthenticated">
+      <template v-if="isAuthenticated">
         <v-menu offset-y>
           <template #activator="{ props }">
             <v-btn v-bind="props" class="mr-2" icon>
-              <v-avatar v-if="authStore.user?.picture" :image="authStore.user.picture" size="36" />
+              <v-avatar v-if="user?.picture" :image="user.picture" size="36" />
             </v-btn>
           </template>
           <v-list density="compact">
@@ -71,7 +68,7 @@
         <v-btn
           class="text-none mr-2"
           variant="outlined"
-          @click="router.push('/auth/login')"
+          @click="router.push('/login')"
         >
           Login
         </v-btn>
